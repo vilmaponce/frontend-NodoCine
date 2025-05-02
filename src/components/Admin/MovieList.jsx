@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import MovieForm from './MovieForm'; // Asumiendo que existe este componente
+import MovieForm from './Admin/MovieForm'; // Componente para el formulario de película
 import Header from '../ui/Header';
 import Footer from '../ui/Footer';// Componente de pie de página
 

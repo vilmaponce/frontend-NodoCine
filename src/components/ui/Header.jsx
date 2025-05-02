@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 
 
 export default function Header({ showAuthButtons = false }) {
+
+  
   return (
     <header className="bg-black py-4 px-6 shadow-lg">
       <div className="container mx-auto flex justify-between items-center">

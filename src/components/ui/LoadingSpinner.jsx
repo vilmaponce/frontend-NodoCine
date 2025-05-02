@@ -1,8 +1,7 @@
-export default function LoadingSpinner({ message = "Cargando..." }) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600 mb-4"></div>
-        <p className="text-gray-300">{message}</p>
-      </div>
-    );
-  }
+export default function LoadingSpinner({ className = '' }) {
+  return (
+    <div className={`inline-block animate-spin rounded-full border-4 border-solid border-current border-r-transparent ${className}`}>
+      <span className="sr-only">Loading...</span>
+    </div>
+  );
+}
