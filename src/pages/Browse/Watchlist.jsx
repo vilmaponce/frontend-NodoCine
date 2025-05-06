@@ -1,44 +1,81 @@
-import { useAuth } from '../context/AuthContext';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { useProfile } from '../../context/ProfileContext';
+import api from '../../utils/api';
+import CardMovie from '../../components/movies/CardMovie';
 
 export default function Watchlist({ profileId }) {
-  const { user } = useAuth();
   const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const fetchWatchlist = async () => {
-    const res = await axios.get(`/api/profiles/${profileId}/watchlist`, {
-      headers: { Authorization: `Bearer ${user.token}` }
-    });
-    setMovies(res.data);
-  };
+  const { user } = useAuth();
+  const { currentProfile } = useProfile();
 
-  const removeMovie = async (movieId) => {
-    await axios.delete(`/api/profiles/${profileId}/watchlist/${movieId}`, {
-      headers: { Authorization: `Bearer ${user.token}` }
-    });
-    fetchWatchlist(); // Refrescar lista
-  };
+  // Usar el profileId pasado como prop, o usar el del contexto
+  const activeProfileId = profileId || currentProfile?._id;
 
-  useEffect(() => { fetchWatchlist(); }, []);
+  // En el useEffect de Watchlist
+  useEffect(() => {
+    const fetchWatchlist = async () => {
+      // Verificar que hay un perfil seleccionado
+      if (!activeProfileId) {
+        setLoading(false);
+        setError('No hay un perfil seleccionado');
+        setMovies([]); // Inicializar como array vacío
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No hay token disponible');
+        }
+
+        try {
+          const response = await fetch(`http://localhost:3001/api/profiles/${activeProfileId}/watchlist`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (!response.ok) {
+            console.error(`Error ${response.status}: ${response.statusText}`);
+            setMovies([]); // Inicializar como array vacío en caso de error
+            setLoading(false);
+            return; // Salir temprano en caso de error
+          }
+
+          const data = await response.json();
+          setMovies(data || []);
+        } catch (fetchError) {
+          console.error('Error al obtener watchlist:', fetchError);
+          setMovies([]); // Inicializar como array vacío en caso de error
+        }
+      } catch (error) {
+        console.error('Error general:', error);
+        setError('No se pudo cargar la lista de películas');
+        setMovies([]); // Inicializar como array vacío en caso de error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWatchlist();
+  }, [activeProfileId]);
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {movies.map(movie => (
-        <div key={movie._id} className="relative group">
-          <img 
-            src={movie.imageUrl} 
-            alt={movie.title}
-            className="rounded-lg w-full h-48 object-cover"
+    <div className="watchlist-container">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {movies.map(movie => (
+          <CardMovie
+            key={movie._id}
+            movie={movie}
+            inWatchlist={true}
+            onRemove={() => handleRemoveMovie(movie._id)}
           />
-          <button
-            onClick={() => removeMovie(movie._id)}
-            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
-          >
-            ✕
-          </button>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

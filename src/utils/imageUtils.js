@@ -1,5 +1,5 @@
 export const normalizeImageUrl = (url) => {
-  if (!url) return 'http://localhost:3001/images/profiles/default-profile.png';
+  if (!url) return 'http://localhost:3001/images/default-profile.png';
   
   // Si ya es una URL completa
   if (url.startsWith('http')) return url;
@@ -15,5 +15,5 @@ export const normalizeImageUrl = (url) => {
   }
   
   // Para cualquier otro caso
-  return `http://localhost:3001/images/profiles/${url}`;
+  return `http://localhost:3001/images/${url}`;
 };

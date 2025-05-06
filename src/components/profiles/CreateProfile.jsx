@@ -1,105 +1,156 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '../../context/ProfileContext';
+import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 
 export default function CreateProfile() {
+  const [name, setName] = useState('');
+  const [isChild, setIsChild] = useState(false);
+  const [image, setImage] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { user } = useAuth();
   const { createNewProfile } = useProfile();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: '',
-    isChild: false,
-    imageFile: null,
-    previewUrl: ''
-  });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  
+  // Obtener ID de usuario de localStorage como respaldo
+  const getUserIdFromStorage = () => {
     try {
-      await createNewProfile(formData);
-      toast.success('Perfil creado exitosamente');
-      navigate('/select-profile');
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser && parsedUser.id) {
+          return parsedUser.id;
+        }
+      }
     } catch (error) {
-      toast.error(error.message || 'Error al crear perfil');
+      console.error('Error obteniendo ID del localStorage:', error);
     }
+    return null;
   };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({
-          ...prev,
-          imageFile: file,
-          previewUrl: reader.result
-        }));
-      };
-      reader.readAsDataURL(file);
+  
+ // En handleSubmit de ProfileCreate.jsx
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('isChild', String(isChild));
+    
+    // Asegurarte de incluir el userId correcto
+    if (user && user.id) {
+      formData.append('userId', user.id);
     }
-  };
-
+    
+    // Añadir la imagen si existe
+    if (imageFile) {
+      formData.append('image', imageFile);
+      console.log('Imagen agregada al FormData:', {
+        nombre: imageFile.name,
+        tipo: imageFile.type,
+        tamaño: imageFile.size
+      });
+    }
+    
+    // Usar la función del contexto o axios directamente
+    const token = localStorage.getItem('token');
+    console.log('Token presente:', !!token);
+    
+    const response = await axios.post(
+      'http://localhost:3001/api/profiles',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+    
+    console.log('Respuesta completa:', response);
+    console.log('Perfil creado:', response.data);
+    
+    toast.success('Perfil creado con éxito');
+    navigate('/select-profile');
+  } catch (error) {
+    console.error('Error completo:', error);
+    
+    if (error.response) {
+      console.error('Error del servidor:', {
+        status: error.response.status,
+        data: error.response.data
+      });
+    }
+    
+    toast.error('Error al crear perfil');
+  } finally {
+    setLoading(false);
+  }
+};
+  
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-md bg-gray-800 p-8 rounded-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center">Crear nuevo perfil</h2>
+    <div className="min-h-screen bg-gray-900 text-white p-6">
+      <div className="max-w-md mx-auto">
+        <h1 className="text-3xl font-bold mb-8 text-center">Crear perfil</h1>
         
-        <div className="mb-6 flex justify-center">
-          <label className="cursor-pointer">
-            <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-700 border-2 border-gray-600">
-              {formData.previewUrl ? (
-                <img src={formData.previewUrl} alt="Preview" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-4xl">+</div>
-              )}
-            </div>
-            <input 
-              type="file" 
-              onChange={handleImageChange}
-              accept="image/*"
-              className="hidden"
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block mb-2 text-lg">Nombre del perfil</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full bg-gray-700 rounded py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+              placeholder="Ingresa un nombre para el perfil"
+              required
             />
-          </label>
-        </div>
-        
-        <div className="mb-4">
-          <label className="block mb-2">Nombre del perfil</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({...formData, name: e.target.value})}
-            className="w-full px-4 py-2 bg-gray-700 rounded"
-            required
-          />
-        </div>
-        
-        <div className="mb-6 flex items-center">
-          <input
-            type="checkbox"
-            id="isChild"
-            checked={formData.isChild}
-            onChange={(e) => setFormData({...formData, isChild: e.target.checked})}
-            className="mr-2"
-          />
-          <label htmlFor="isChild">Perfil infantil (filtra contenido para niños)</label>
-        </div>
-        
-        <div className="flex justify-between">
-          <button
-            type="button"
-            onClick={() => navigate('/select-profile')}
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded"
-          >
-            Crear Perfil
-          </button>
-        </div>
-      </form>
+          </div>
+          
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="isChild"
+              checked={isChild}
+              onChange={(e) => setIsChild(e.target.checked)}
+              className="w-5 h-5 text-red-600 rounded focus:ring-red-500"
+            />
+            <label htmlFor="isChild" className="ml-2 text-lg">
+              Perfil infantil
+            </label>
+          </div>
+          
+          <div>
+            <label className="block mb-2 text-lg">Imagen de perfil (opcional)</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImage(e.target.files[0])}
+              className="w-full bg-gray-700 rounded py-2 px-4 text-white"
+            />
+          </div>
+          
+          <div className="flex gap-4 pt-4">
+            <button
+              type="button"
+              onClick={() => navigate('/select-profile')}
+              className="flex-1 py-3 px-6 rounded-lg bg-gray-700 hover:bg-gray-600 transition duration-200"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 py-3 px-6 rounded-lg bg-red-600 hover:bg-red-700 transition duration-200 disabled:opacity-70"
+            >
+              {isSubmitting ? 'Creando...' : 'Crear perfil'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

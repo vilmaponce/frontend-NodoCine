@@ -1,21 +1,29 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // Añade Link
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { register } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth(); // Usa el hook personalizado
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
+    
     try {
+      console.log('Intentando registrar usuario:', email);
       await register(email, password);
-      navigate('/profiles', { replace: true }); // Mejor práctica: replace evita volver atrás
+      navigate('/', { replace: true }); // Redirigir a la página principal
     } catch (err) {
-      setError(err.message || 'Error al registrar'); // Muestra error específico del backend
+      console.error('Error al registrar:', err);
+      setError(err.message || 'Error al registrar. Inténtalo de nuevo.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,9 +46,10 @@ export default function Register() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-2 focus:ring-red-500"
               required
               autoComplete="email"
+              disabled={loading}
             />
           </div>
           <div>
@@ -52,24 +61,26 @@ export default function Register() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:ring-2 focus:ring-red-500"
               required
               autoComplete="new-password"
               minLength="6"
+              disabled={loading}
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded transition duration-200"
+            className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded transition duration-200 disabled:opacity-50"
+            disabled={loading}
           >
-            Crear cuenta
+            {loading ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
         </form>
         <p className="mt-6 text-center text-gray-400">
           ¿Ya tienes cuenta?{' '}
           <Link 
             to="/login" 
-            className="text-green-500 hover:underline"
+            className="text-red-500 hover:underline"
           >
             Inicia sesión
           </Link>
@@ -78,4 +89,3 @@ export default function Register() {
     </div>
   );
 }
-

@@ -1,11 +1,14 @@
 @import "tailwindcss";
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  .image-fade {
-    animation: fadeIn 0.5s ease-out;
-  }
+body, #root {
+  background-color: #111827 !important; /* Un gris oscuro que mantiene la estética pero mejora visibilidad */
+}
 
+h1, h2, h3, p, label, span, a, button {
+  color: white !important;
+}
+
+input, select, textarea {
+  color: white !important;
+  background-color: #374151 !important; /* Input más visibles */
+}

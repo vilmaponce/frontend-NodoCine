@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
-import ProfileFormModal from '../../components/ProfileFormModal';
+import { MovieFormSimple } from '../../components/Admin/MovieFormSimple';
+
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 import { normalizeImageUrl } from '../../utils/imageUtils';
+
 
 const ProfileManager = () => {
   const { user, token } = useAuth();
@@ -15,6 +17,8 @@ const ProfileManager = () => {
   const [editingProfile, setEditingProfile] = useState(null);
 
   const fetchProfiles = async () => {
+    if (profiles.length > 0) return; // Evitar la carga repetida
+  
     setLoading(true);
     try {
       const response = await axios.get('http://localhost:3001/api/profiles', {
@@ -22,14 +26,15 @@ const ProfileManager = () => {
           Authorization: `Bearer ${token}`
         }
       });
-
-      // Normalizar las URLs de las imágenes
+  
+      console.log(response.data); // Verifica la estructura de la respuesta
+  
       const normalizedProfiles = response.data.map(profile => ({
         ...profile,
         imageUrl: normalizeImageUrl(profile.imageUrl)
       }));
-
-      setProfiles(normalizedProfiles);
+  
+      setProfiles(normalizedProfiles); // Aquí actualizas el estado
     } catch (err) {
       setError(err.response?.data?.message || 'Error al cargar perfiles');
       toast.error('Error al cargar perfiles');
@@ -38,12 +43,15 @@ const ProfileManager = () => {
       setLoading(false);
     }
   };
+  console.log("TOKEN ACTUAL:", token);
 
   useEffect(() => {
-    if (token) {
-      fetchProfiles();
-    }
+    console.log("Ejecutando useEffect con token:", token);
+    if (!token) return;
+  
+    fetchProfiles();
   }, [token]);
+  
 
   const handleCreateProfile = async (formData) => {
     try {
@@ -70,7 +78,7 @@ const ProfileManager = () => {
           'Authorization': `Bearer ${token}`  // ✅ Usás el token directamente
         }
       });
-  
+
       if (response.data.success) {
         setProfiles(prev => prev.map(p =>
           p._id === id ? { ...p, ...response.data.profile } : p
@@ -78,9 +86,9 @@ const ProfileManager = () => {
         toast.success('Perfil actualizado correctamente');
         return response.data;
       }
-  
+
       throw new Error(response.data.error || 'Error al actualizar perfil');
-  
+
     } catch (err) {
       console.error('Error updating profile:', {
         status: err.response?.status,
@@ -91,8 +99,8 @@ const ProfileManager = () => {
       throw err;
     }
   };
-  
-  
+
+
 
   const handleDeleteProfile = async (profileId) => {
     if (!window.confirm('¿Estás seguro de eliminar este perfil?')) return;
@@ -143,13 +151,17 @@ const ProfileManager = () => {
           <div key={profile._id} className="border rounded-lg overflow-hidden shadow-md">
             <div className="relative">
               <img
-                src={profile.imageUrl}
+                src={profile.imageUrl} // Ya viene normalizada desde el backend
                 alt={profile.name}
                 className="w-full h-48 object-cover"
                 onError={(e) => {
-                  e.target.src = normalizeImageUrl('/images/profiles/default-profile.png');
+                  if (!e.target.src.includes('default-profile.png')) {
+                    e.target.src = normalizeImageUrl('/images/default-profile.png');
+                  }
                 }}
               />
+
+
               <div className="absolute top-2 right-2 flex space-x-2">
                 <button
                   onClick={() => {
