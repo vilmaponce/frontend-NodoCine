@@ -1,165 +1,244 @@
-// src/components/MovieFormSimple.jsx
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import { XMarkIcon, CheckIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+// Modificación de MovieFormSimple.jsx
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import api from '../utils/api';
 
-// Validación con Yup
-const movieSchema = yup.object({
-  title: yup.string().required('El título es obligatorio'),
-  director: yup.string(),
-  year: yup.number().typeError('Debe ser un número'),
-  genre: yup.string().required('Selecciona un género'),
-  rating: yup.number().typeError('Debe ser un número'),
-  imageUrl: yup.string(),
-  description: yup.string()
-});
+const MovieFormSimple = () => {
+  const { id } = useParams(); // Para obtener el ID de la URL si estamos editando
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-export default function MovieFormSimple(props) {
-  console.log("MovieFormSimple props recibidas:", props);
-  console.log("Tipo de props.onSave:", typeof props.onSave);
-  console.log("Tipo de props.onClose:", typeof props.onClose);
-  console.log("Tipo de props.onBackToList:", typeof props.onBackToList);
-  console.log("Contenido de props.movie:", props.movie);
-
-  // Desestructurar props con valores por defecto
-  const {
-    movie = {},
-    onSave = () => console.log("No se proporcionó onSave"),
-    onClose = () => console.log("No se proporcionó onClose"),
-    onBackToList = () => console.log("No se proporcionó onBackToList")
-  } = props;
-
-  // Log de tipos
-  console.log("Tipos de props:", {
-    movieType: typeof movie,
-    onSaveType: typeof onSave,
-    onCloseType: typeof onClose,
-    onBackToListType: typeof onBackToList
+  const [movie, setMovie] = useState({
+    title: '',
+    director: '',
+    year: new Date().getFullYear(),
+    genre: '',
+    imageUrl: '',
+    duration: '',
+    rating: 0,
+    isFeatured: false
   });
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors }
-  } = useForm({
-    resolver: yupResolver(movieSchema),
-    defaultValues: movie
-  });
+  // Si hay un ID, cargar los datos de la película para editar
+  useEffect(() => {
+    if (id) {
+      fetchMovie();
+    }
+  }, [id]);
 
-  const handleFormSubmit = (data) => {
-    console.log("✅ Formulario enviado con datos:", data);
-    onSave({
-      ...data,
-      _id: movie?._id
+  // Función para cargar una película existente
+  const fetchMovie = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/movies/${id}`);
+      setMovie(response.data);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error al cargar película:', err);
+      setError('No se pudo cargar la información de la película');
+      setLoading(false);
+    }
+  };
+
+  // Manejar cambios en los campos
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setMovie({
+      ...movie,
+      [name]: type === 'checkbox' ? checked : value
     });
   };
 
+  // Guardar película
+  const handleSave = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Aquí está el problema - necesitamos definir movieData
+      const movieData = {
+        title: movie.title,
+        director: movie.director || '',
+        year: Number(movie.year) || new Date().getFullYear(),
+        genre: movie.genre || '',
+        imageUrl: movie.imageUrl || '',
+        duration: movie.duration || '',
+        rating: Number(movie.rating) || 0,
+        isFeatured: Boolean(movie.isFeatured)
+      };
+      
+      console.log('Datos a enviar:', movieData);
+      
+      if (id) {
+        // Actualizar película existente
+        await api.put(`/movies/${id}`, movieData);
+        console.log('Película actualizada');
+        // Opcional: redirigir a la vista detallada
+        navigate(`/movies/${id}`);
+      } else {
+        // Crear nueva película
+        const response = await api.post('/movies', movieData);
+        console.log('Película creada');
+        // Opcional: redirigir a la vista detallada
+        if (response.data && response.data._id) {
+          navigate(`/movies/${response.data._id}`);
+        } else {
+          navigate('/admin/movies');
+        }
+      }
+    } catch (err) {
+      console.error('Error al guardar película:', err);
+      setError('Error al guardar la película: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Cancelar y volver
+  const handleCancel = () => {
+    navigate('/admin/movies');
+  };
+
+  if (loading && id) {
+    return <div className="text-center py-10">Cargando...</div>;
+  }
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative">
-        <form onSubmit={handleSubmit(handleFormSubmit)}>
+    <div className="max-w-xl mx-auto bg-gray-800 p-6 rounded-lg">
+      <h2 className="text-2xl font-bold text-white mb-6">
+        {id ? 'Editar Película' : 'Añadir Película'}
+      </h2>
+
+      {error && (
+        <div className="bg-red-500 text-white p-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSave} className="space-y-4">
+        <div>
+          <label htmlFor="title" className="block text-gray-300">Título*</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            value={movie.title}
+            onChange={handleChange}
+            required
+            className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="director" className="block text-gray-300">Director</label>
+          <input
+            type="text"
+            id="director"
+            name="director"
+            value={movie.director}
+            onChange={handleChange}
+            className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="year" className="block text-gray-300">Año</label>
+            <input
+              type="number"
+              id="year"
+              name="year"
+              value={movie.year}
+              onChange={handleChange}
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="genre" className="block text-gray-300">Género</label>
+            <select
+              id="genre"
+              name="genre"
+              value={movie.genre}
+              onChange={handleChange}
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+            >
+              <option value="">Seleccionar</option>
+              <option value="action">Acción</option>
+              <option value="comedy">Comedia</option>
+              <option value="romance">Romántica</option>
+              <option value="thriller">Suspenso</option>
+              <option value="adventure">Aventura</option>
+              <option value="animation">Animación</option>
+              <option value="drama">Drama</option>
+              <option value="horror">Terror</option>
+              <option value="scifi">Ciencia Ficción</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="imageUrl" className="block text-gray-300">URL de Imagen</label>
+          <input
+            type="text"
+            id="imageUrl"
+            name="imageUrl"
+            value={movie.imageUrl}
+            onChange={handleChange}
+            className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+            placeholder="http://ejemplo.com/imagen.jpg"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="rating" className="block text-gray-300">Rating (0-10)</label>
+          <input
+            type="number"
+            id="rating"
+            name="rating"
+            min="0"
+            max="10"
+            step="0.1"
+            value={movie.rating}
+            onChange={handleChange}
+            className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+          />
+        </div>
+
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="isFeatured"
+            name="isFeatured"
+            checked={movie.isFeatured}
+            onChange={handleChange}
+            className="mr-2"
+          />
+          <label htmlFor="isFeatured" className="text-gray-300">Película destacada</label>
+        </div>
+
+        <div className="flex justify-end space-x-4 pt-4">
           <button
             type="button"
-            className="absolute top-4 left-4 text-blue-400 hover:text-blue-300 z-10"
-            onClick={onBackToList}
+            onClick={handleCancel}
+            className="px-4 py-2 bg-gray-600 text-white rounded"
           >
-            <ArrowLeftIcon className="h-6 w-6" />
+            Cancelar
           </button>
-
-          <h2 className="text-xl font-bold text-white mb-6 text-center pt-4">
-            {movie?._id ? 'EDITAR PELÍCULA' : 'NUEVA PELÍCULA'}
-          </h2>
-
-          {/* Campos del formulario */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="block text-gray-300 mb-2">Título*</label>
-              <input {...register('title')} className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" />
-              {errors.title && <p className="text-red-400 text-sm mt-1">{errors.title.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-gray-300 mb-2">Director</label>
-              <input {...register('director')} className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" />
-            </div>
-
-            <div>
-              <label className="block text-gray-300 mb-2">Año</label>
-              <input type="number" {...register('year')} className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" />
-              {errors.year && <p className="text-red-400 text-sm mt-1">{errors.year.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-gray-300 mb-2">Género*</label>
-              <select {...register('genre')} className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600">
-                <option value="">Seleccionar...</option>
-                <option value="Acción">Acción</option>
-                <option value="Comedia">Comedia</option>
-                <option value="Romance">Romance</option>
-                <option value="Aventura">Aventura</option>
-                <option value="Animación">Animación</option>
-                <option value="Documental">Documental</option>
-                <option value="Fantasía">Fantasía</option>
-                <option value="Drama">Drama</option>
-                <option value="Ciencia ficción">Ciencia ficción</option>
-                <option value="Terror">Terror</option>
-              </select>
-              {errors.genre && <p className="text-red-400 text-sm mt-1">{errors.genre.message}</p>}
-            </div>
-
-            {/* Campo de rating en el formulario */}
-            <div>
-              <label className="block text-gray-300 mb-2">Rating (0-10)</label>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                max="10"
-                {...register('rating', {
-                  valueAsNumber: true  // Asegura que se envíe como número
-                })}
-                className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-              />
-              {errors.rating && (
-                <p className="text-red-400 text-sm mt-1">{errors.rating.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-gray-300 mb-2">URL de Imagen</label>
-              <input {...register('imageUrl')} className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" />
-              {errors.imageUrl && <p className="text-red-400 text-sm mt-1">{errors.imageUrl.message}</p>}
-            </div>
-
-            <div className="col-span-2">
-              <label className="block text-gray-300 mb-2">Descripción</label>
-              <textarea {...register('description')} rows={3} className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" />
-              {errors.description && <p className="text-red-400 text-sm mt-1">{errors.description.message}</p>}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-4 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex items-center px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded"
-            >
-              <XMarkIcon className="h-5 w-5 mr-1" />
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded"
-            >
-              <CheckIcon className="h-5 w-5 mr-1" />
-              {movie?._id ? 'Actualizar' : 'Guardar'}
-            </button>
-          </div>
-        </form>
-      </div>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-red-600 text-white rounded"
+            disabled={loading}
+          >
+            {loading ? 'Guardando...' : 'Guardar'}
+          </button>
+        </div>
+      </form>
     </div>
   );
-}
+};
+
+export default MovieFormSimple;
 

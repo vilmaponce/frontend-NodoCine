@@ -23,28 +23,28 @@ export default function Navbar() {
       if (!updateCurrentProfile) {
         throw new Error('Función updateCurrentProfile no disponible');
       }
-  
+
       const userData = localStorage.getItem('user');
       if (!userData) throw new Error('No hay usuario logueado');
-  
+
       const user = JSON.parse(userData);
       if (!user?.id) throw new Error('Usuario no válido');
-  
+
       // Actualiza el perfil
       await updateCurrentProfile({
         id: user.id,
         name: user.name || 'Usuario Normal',
         isChild: false
       });
-  
+
       // Redirige y muestra feedback
       navigate('/');
       toast.success('Cambiado a modo usuario normal');
-      
+
     } catch (error) {
       console.error('Error al cambiar a modo usuario:', error);
       toast.error(error.message);
-      
+
       if (error.message.includes('No hay usuario')) {
         navigate('/login');
       }
@@ -99,12 +99,22 @@ export default function Navbar() {
                 {user?.email === 'admin@admin.com' && !isAdmin && (
                   <button
                     onClick={() => {
-                      makeAdmin();
-                      navigate('/admin'); // Redirigir al panel de administración
+                      if (user && user.email) {
+                        makeAdmin(user.email)
+                          .then(() => {
+                            alert('¡Ahora eres administrador!');
+                            window.location.reload(); // Recargar para actualizar permisos
+                          })
+                          .catch(err => {
+                            alert('Error: ' + err.message);
+                          });
+                      } else {
+                        alert('Debes iniciar sesión primero');
+                      }
                     }}
-                    className="ml-4 bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded"
+                    className="..."
                   >
-                    Activar Modo Admin
+                    Activar modo administrador
                   </button>
                 )}
               </>

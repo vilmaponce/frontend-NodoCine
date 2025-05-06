@@ -1,212 +1,146 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+// Versión depurada de AuthContext.jsx
+import { createContext, useState, useContext, useEffect } from 'react';
 import api from '../utils/api';
 
-// Crear el contexto
 export const AuthContext = createContext();
+
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const setAdminMode = () => {
-    if (user) {
-      const updatedUser = { ...user, isAdmin: true };
-      setUser(updatedUser);
-      setIsAdmin(true);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      toast.success('Modo administrador activado');
-    }
-  };
-  // Verificar token al cargar la aplicación
+  const [authError, setAuthError] = useState(null);
+
+  // Función para verificar el token al cargar la aplicación
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-
-      if (token) {
-        try {
-          // Configurar el token para las solicitudes
-          api.defaults.headers.Authorization = `Bearer ${token}`;
-
-          // Intentar usar el usuario almacenado si existe
-          if (storedUser) {
-            try {
-              const parsedUser = JSON.parse(storedUser);
-
-              // Asegurar que tiene todos los campos necesarios
-              const normalizedUser = {
-                id: parsedUser.id || parsedUser._id || '',
-                name: parsedUser.name || 'Usuario',
-                email: parsedUser.email,
-                role: parsedUser.role || 'user' // Asignar rol predeterminado
-              };
-
-              setUser(normalizedUser);
-              setIsAuthenticated(true);
-              setIsAdmin(normalizedUser.role === 'admin');
-              setLoading(false);
-              return;
-            } catch (parseError) {
-              console.error('Error al parsear usuario almacenado:', parseError);
-            }
-          }
-
-          // Si no hay usuario almacenado, verificar con el servidor
-          const response = await api.get('/auth/verify');
-
-          // Asegurar que tiene todos los campos necesarios
-          const userData = {
-            id: response.data.user._id || response.data.user.id || '',
-            name: response.data.user.name || 'Usuario',
-            email: response.data.user.email,
-            role: response.data.user.role || 'user' // Asignar rol predeterminado
-          };
-
-          setUser(userData);
-          setIsAuthenticated(true);
-          setIsAdmin(userData.role === 'admin');
-
-          // Actualizar usuario almacenado
-          localStorage.setItem('user', JSON.stringify(userData));
-        } catch (error) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          console.error('Error verificando autenticación:', error);
-        }
+      console.log('🔐 Verificando token almacenado:', token ? 'Existe' : 'No existe');
+      
+      if (!token) {
+        console.log('🔒 No hay token, usuario no autenticado');
+        setLoading(false);
+        return;
       }
 
-      setLoading(false);
+      try {
+        // Intentar verificar el token con el backend
+        console.log('🔍 Verificando token con el backend...');
+        const response = await api.get('/auth/verify');
+        console.log('✅ Token verificado:', response.data);
+        
+        // Actualizar estado con la información del usuario
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+        
+        // Verificar si es admin (compatible con ambos formatos)
+        const adminStatus = response.data.user.isAdmin || response.data.user.role === 'admin';
+        setIsAdmin(adminStatus);
+        console.log('👑 Es administrador:', adminStatus);
+      } catch (error) {
+        console.error('❌ Error al verificar token:', error);
+        // Limpiar token inválido
+        localStorage.removeItem('token');
+        setAuthError('Sesión expirada o inválida');
+      } finally {
+        setLoading(false);
+      }
     };
 
     checkAuth();
   }, []);
 
-  // Función de login actualizada
-  // En AuthContext.jsx, modifica la función login
-
-  // En AuthContext.jsx, función login
+  // Función para iniciar sesión
   const login = async (credentials) => {
     try {
+      console.log('Enviando credenciales:', {
+        email: credentials.email,
+        passwordLength: credentials.password.length // No imprimas la contraseña completa por seguridad
+      });
       const response = await api.post('/auth/login', credentials);
-
-      // Obtener datos del usuario
-      const userFromResponse = response.data.user;
-
-      // Determinar si el usuario es administrador (verificando ambos campos)
-      const isAdminUser =
-        userFromResponse.isAdmin === true ||
-        userFromResponse.role === 'admin';
-
-      // Crear objeto de usuario normalizado
-      const userData = {
-        id: userFromResponse._id || userFromResponse.id || '',
-        username: userFromResponse.username || 'Usuario',
-        email: userFromResponse.email,
-        isAdmin: isAdminUser  // Usar el valor calculado
-      };
-
-      console.log('Usuario normalizado:', userData);
-      console.log('Es admin?', userData.isAdmin);
-
-      // Guardar y actualizar estado...
+      console.log('✅ Login exitoso:', response.data);
+      
+      // Guardar token en localStorage
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
+      
+      // Actualizar estado
+      setUser(response.data.user);
       setIsAuthenticated(true);
-      setIsAdmin(isAdminUser);
-
-      return {
-        ...response.data,
-        user: userData
-      };
+      
+      // Verificar si es admin (compatible con ambos formatos)
+      const adminStatus = response.data.user.isAdmin || response.data.user.role === 'admin';
+      setIsAdmin(adminStatus);
+      console.log('👑 Es administrador:', adminStatus);
+      
+      return response.data;
     } catch (error) {
-      // Manejo de errores...
+      console.error('❌ Error en login:', error);
+      const errorMsg = error.response?.data?.message || 'Error de conexión';
+      setAuthError(errorMsg);
+      throw new Error(errorMsg);
     }
   };
 
-  // Función de registro
+  // Función para registrar usuario
   const register = async (email, password) => {
     try {
+      console.log('📝 Intentando registrar:', email);
       const response = await api.post('/auth/register', { email, password });
-
-      // Similar a login, asegurarse de normalizar los datos del usuario
-      const userFromResponse = response.data.user;
-
-      // Crear objeto de usuario normalizado
-      const userData = {
-        id: userFromResponse._id || userFromResponse.id || '',
-        name: userFromResponse.name || 'Usuario',
-        email: userFromResponse.email,
-        role: userFromResponse.role || 'user' // Asignar 'user' como rol predeterminado
-      };
-
-      // Guardar token y usuario
+      console.log('✅ Registro exitoso:', response.data);
+      
+      // Guardar token en localStorage
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(userData));
-
-      // Actualizar estado
-      setUser(userData);
-      setIsAuthenticated(true);
-      setIsAdmin(userData.role === 'admin');
-
-      return {
-        ...response.data,
-        user: userData
-      };
+      
+      // Iniciar sesión automáticamente tras registro
+      return login({ email, password });
     } catch (error) {
-      throw error.response ? error.response.data : new Error('Error en el registro');
+      console.error('❌ Error en registro:', error);
+      const errorMsg = error.response?.data?.message || 'Error de conexión';
+      setAuthError(errorMsg);
+      throw new Error(errorMsg);
     }
   };
 
-  // Función de logout
+  // Función para cerrar sesión
   const logout = () => {
-    // Eliminar token y usuario del localStorage
+    console.log('👋 Cerrando sesión...');
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('currentProfile'); // También eliminar perfil actual si existe
-
-    // Reiniciar estado
     setUser(null);
     setIsAuthenticated(false);
     setIsAdmin(false);
   };
 
-  const makeAdmin = () => {
-    if (user && user.email === 'admin@admin.com') {
-      const updatedUser = { ...user, isAdmin: true };
-      setUser(updatedUser);
-      setIsAdmin(true);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      return true;
+  const makeAdmin = async (email) => {
+    try {
+      console.log('🔑 Intentando hacer admin a:', email);
+      const response = await api.post('/auth/make-admin', { email });
+      console.log('✅ Usuario actualizado a admin:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error al hacer admin:', error);
+      throw new Error(error.response?.data?.message || 'Error al actualizar permisos');
     }
-    return false;
+  };
+
+  // Objeto de contexto con todos los valores y funciones
+  const contextValue = {
+    user,
+    isAuthenticated,
+    isAdmin,
+    loading,
+    authError,
+    login,
+    register,
+    logout,
+    makeAdmin,
+    setAuthError
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated,
-        isAdmin,
-        loading,
-        login,
-        logout,
-        register,
-        setAdminMode, 
-        makeAdmin, // Añadir makeAdmin al contexto
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
-};
-
-// Hook personalizado para acceder al contexto
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth debe ser usado dentro de un AuthProvider');
-  }
-  return context;
 };

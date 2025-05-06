@@ -1,123 +1,124 @@
-import React from 'react';
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+// src/pages/Profiles/ProfileSelect.jsx
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useProfile } from '../../context/ProfileContext';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { toast } from 'react-toastify';
-import { useState } from 'react';
-import { useRef } from 'react'; // Añadir useRef
+import { getProfileImageUrl } from '../../utils/imageUtils';
+import api from '../../utils/api';
 
-export default function ProfileSelect() {
+const ProfileSelect = () => {
+  const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user, isAdmin } = useAuth();
-  const { profiles, setCurrentProfile, loadUserProfiles } = useProfile();
+  const [error, setError] = useState('');
+
+  const { user } = useAuth();
+  const { selectProfile } = useProfile();
   const navigate = useNavigate();
 
-  // Añadir un ref para controlar si ya se intentó cargar
-  const loadAttempted = React.useRef(false);
-
   useEffect(() => {
-    // Evitar múltiples llamadas usando el ref
-    if (!loadAttempted.current && user && user.id) {
-      const fetchProfiles = async () => {
-        try {
-          setLoading(true);
-          await loadUserProfiles(user.id);
-        } catch (error) {
-          console.error('Error al obtener perfiles:', error);
-          toast.error('Error al cargar perfiles');
-        } finally {
-          setLoading(false);
-        }
-      };
-
+    if (user && user.id) {
       fetchProfiles();
-      loadAttempted.current = true;
-    } else if (!user) {
-      // Si no hay usuario, redirigir al login
-      navigate('/login');
-    } else if (profiles.length > 0) {
-      // Si ya tenemos perfiles cargados, no estamos cargando
+    }
+  }, [user]);
+
+  const fetchProfiles = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/profiles/user/${user.id}`);
+      setProfiles(response.data);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error al cargar perfiles:', err);
+      setError('No se pudieron cargar los perfiles');
       setLoading(false);
     }
-  }, [user, navigate]); // Quitar loadUserProfiles de las dependencias
+  };
 
   const handleSelectProfile = (profile) => {
-    // Guardar el perfil seleccionado en el contexto
-    setCurrentProfile(profile);
-    // Redirigir a la página principal
+    selectProfile(profile);
     navigate('/home');
   };
 
-  const goToAdminPanel = () => {
-    navigate('/admin');
-  };
-
-  if (loading && profiles.length === 0) {
-    return <div className="text-white text-center p-8">Cargando perfiles...</div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-900">
+        <div className="text-xl text-white">Cargando perfiles...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto px-4 py-16 text-center">
-      <h1 className="text-3xl font-bold text-white mb-8">¿Quién está viendo?</h1>
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4">
+      <h1 className="text-4xl font-bold text-white mb-10">¿Quién está viendo?</h1>
 
-      {/* Mostrar opción de panel de administrador si el usuario es admin */}
-      {isAdmin && (
-        <div className="mb-8">
-          <button
-            onClick={goToAdminPanel}
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold transition duration-300"
-          >
-            Panel de Administrador
-          </button>
+      {error && (
+        <div className="bg-red-500 text-white p-3 rounded-md mb-6 max-w-md">
+          {error}
         </div>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-4xl mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mb-10">
         {profiles.map(profile => (
           <div
-            key={profile.id || profile._id}
-            className="cursor-pointer transition transform hover:scale-105"
+            key={profile._id}
+            className="flex flex-col items-center cursor-pointer group"
             onClick={() => handleSelectProfile(profile)}
           >
-            <div className="bg-gray-800 rounded-lg overflow-hidden">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border-4 border-transparent group-hover:border-red-600 transition-all duration-200">
               <img
-                src={profile.imageUrl?.includes('http')
-                  ? profile.imageUrl
-                  : `http://localhost:3001${profile.imageUrl || ''}`}
+                src="http://localhost:3001/images/profiles/default-profile.png"
                 alt={profile.name}
-                className="w-full h-40 object-cover"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = '/images/profile_default.png';
-                }}
+                className="w-full h-full object-cover"
               />
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-white">{profile.name}</h3>
-                {profile.isChild && (
-                  <span className="inline-block bg-blue-500 text-white text-xs px-2 py-1 rounded mt-2">
-                    Kids
-                  </span>
-                )}
-              </div>
             </div>
+            <span className="mt-2 text-gray-400 group-hover:text-white text-center">
+              {profile.name}
+              {profile.isChild && (
+                <span className="ml-1 text-xs bg-blue-500 text-white px-1 rounded">
+                  Niño
+                </span>
+              )}
+            </span>
           </div>
         ))}
 
-        {/* Botón de añadir perfil */}
-        <div
-          className="cursor-pointer transition transform hover:scale-105"
-          onClick={() => navigate('/create-profile')}
+        {/* Botón de Añadir Perfil */}
+        {/* Botón de Añadir Perfil */}
+        <Link
+          to="/create-profile"
+          className="flex flex-col items-center"
         >
-          <div className="bg-gray-800 rounded-lg flex items-center justify-center h-full min-h-[200px]">
-            <div className="text-center">
-              <div className="text-5xl text-gray-400 font-light mb-2">+</div>
-              <p className="text-gray-400">Añadir perfil</p>
-            </div>
+          <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border-4 border-transparent hover:border-red-600 flex items-center justify-center bg-gray-800 transition-all duration-200">
+            <svg
+              className="w-16 h-16 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
           </div>
-        </div>
+          <span className="mt-2 text-gray-400 hover:text-white">Añadir Perfil</span>
+        </Link>
       </div>
+
+      {/* Botón para administrar perfiles */}
+      {profiles.length > 0 && (
+        <button
+          onClick={() => navigate('/manage-profiles')}
+          className="mt-4 px-6 py-2 border border-gray-600 text-gray-400 hover:text-white hover:border-white rounded-md transition-colors"
+        >
+          Administrar perfiles
+        </button>
+      )}
     </div>
   );
-}
+};
+
+export default ProfileSelect;

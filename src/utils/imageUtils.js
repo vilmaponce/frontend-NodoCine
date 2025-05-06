@@ -1,19 +1,52 @@
-export const normalizeImageUrl = (url) => {
-  if (!url) return 'http://localhost:3001/images/default-profile.png';
+// src/utils/imageUtils.js
+
+/**
+ * Obtiene la URL completa para una imagen
+ * @param {string} relativePath - Ruta relativa de la imagen
+ * @param {string} type - Tipo de imagen (profiles, movies)
+ * @returns {string} URL completa de la imagen
+ */
+export const getImageUrl = (relativePath, type = 'profiles') => {
+  // URL base del backend
+  const backendUrl = 'http://localhost:3001';
   
-  // Si ya es una URL completa
-  if (url.startsWith('http')) return url;
-  
-  // Si es una ruta local
-  if (url.startsWith('/images/profiles/')) {
-    return `http://localhost:3001${url}`;
+  // Si la ruta es vacía o undefined, devolver imagen por defecto
+  if (!relativePath) {
+    return `${backendUrl}/images/${type}/default-${type === 'profiles' ? 'profile' : 'movie'}.png`;
   }
   
-  // Si es una ruta de perfil sin el prefijo completo
-  if (url.startsWith('/profiles/')) {
-    return `http://localhost:3001/images${url}`;
+  // Si ya es una URL completa, devolverla tal cual
+  if (relativePath.startsWith('http')) {
+    return relativePath;
   }
   
-  // Para cualquier otro caso
-  return `http://localhost:3001/images/${url}`;
+  // Normalizar la ruta
+  let normalizedPath = relativePath;
+  
+  // Asegurarse de que comienza con /
+  if (!normalizedPath.startsWith('/')) {
+    normalizedPath = `/${normalizedPath}`;
+  }
+  
+  // Asegurarse de que incluye /images/ en la ruta
+  if (!normalizedPath.includes('/images/')) {
+    normalizedPath = `/images/${type}${normalizedPath}`;
+  }
+  
+  // Devolver URL completa
+  return `${backendUrl}${normalizedPath}`;
+};
+
+/**
+ * Obtiene la URL para una imagen de perfil
+ */
+export const getProfileImageUrl = (relativePath) => {
+  return getImageUrl(relativePath, 'profiles');
+};
+
+/**
+ * Obtiene la URL para una imagen de película
+ */
+export const getMovieImageUrl = (relativePath) => {
+  return getImageUrl(relativePath, 'movies');
 };

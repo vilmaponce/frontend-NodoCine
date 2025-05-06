@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api'; // Asegúrate de que la ruta sea correcta
-import MovieFormSimple from '../../components/MovieFormSimple'; // Asegúrate de que la ruta sea correcta
 import { toast } from 'react-toastify';
 
 const MovieManager = () => {

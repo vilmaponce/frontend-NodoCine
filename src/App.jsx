@@ -17,21 +17,25 @@ import Register from './components/auth/Register';
 // Páginas de contenido
 import MovieList from './components/movies/movieList';
 import MovieDetail from './components/movies/MovieDetail';
-import Profile from './components/user/Profile';
+import ProfileForm from './components/profiles/ProfileForm';
 import Unauthorized from './pages/Unauthorized';
 import ProfileSelect from './pages/Profiles/ProfileSelect';
 import ProfileCreate from './pages/Profiles/ProfileCreate';
-import MovieManager from './pages/Admin/MovieManager';// Usar solo este
+import ManageProfiles from './pages/Profiles/ManageProfiles';
+import MovieCatalog from './components/movies/MovieCatalog';
+import Watchlist from './components/user/Watchlist';
+import MovieFormSimple from './components/MovieFormSimple'; // Para agregar y editar películas
 
 // Páginas de administración
 import AdminDashboard from './components/Admin/AdminDashboard';// Usar solo este
-import MovieFormSimple from './components/MovieFormSimple';
+import UserList from './components/Admin/UserList';
 
 function App() {
   return (
     <AuthProvider>
-      <ProfileProvider>
-        <Router>
+      <Router>
+        <ProfileProvider>
+
           <div className="min-h-screen bg-gray-800">
             <Navbar /> {/* Solo este Navbar para toda la aplicación */}
             <main className="container mx-auto py-4">
@@ -40,30 +44,34 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/unauthorized" element={<Unauthorized />} />
-                
+
                 {/* Rutas para usuarios autenticados */}
                 <Route element={<PrivateRoute />}>
                   <Route path="/" element={<ProfileSelect />} />
                   <Route path="/home" element={<Home />} />
                   <Route path="/select-profile" element={<ProfileSelect />} />
                   <Route path="/create-profile" element={<ProfileCreate />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/movies" element={<MovieList />} />
+                  <Route path="/edit-profile/:id" element={<ProfileForm />} />
+                  <Route path="/manage-profiles" element={<ManageProfiles />} />
+                  <Route path="/movies" element={<MovieCatalog />} />
                   <Route path="/movies/:id" element={<MovieDetail />} />
-                  <Route path="/favorites" element={<Profile />} />
+                  <Route path="/watchlist" element={<Watchlist />} />
                 </Route>
-                
+
                 {/* Rutas solo para administradores */}
                 <Route element={<AdminRoute />}>
                   <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/admin/movies/add" element={<MovieManager />} />
-                  <Route path="/admin/movies/edit/:id" element={<MovieManager />} />
+                  <Route path="/admin/movies" element={<MovieList />} />
+                  <Route path="/admin/users" element={<UserList />} />
+                  <Route path="/admin/profiles" element={< UserList/>} />
+                  <Route path="/admin/movies/add" element={<MovieFormSimple />} />
+                  <Route path="/admin/movies/edit/:id" element={<MovieFormSimple />} />
                 </Route>
               </Routes>
             </main>
           </div>
-        </Router>
-      </ProfileProvider>
+        </ProfileProvider>
+      </Router>
     </AuthProvider>
   );
 }
