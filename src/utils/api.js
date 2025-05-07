@@ -3,10 +3,9 @@ import axios from 'axios';
 
 // Crear una instancia de axios con la URL base
 const api = axios.create({
-  baseURL: 'http://localhost:3001/api'  // Ajusta según la URL de tu backend
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 });
-
-// Configurar interceptor para agregar el token automáticamente en cada petición
+// interceptor para agregar el token automáticamente en cada petición
 
 // Interceptor de solicitud para añadir el token
 api.interceptors.request.use(

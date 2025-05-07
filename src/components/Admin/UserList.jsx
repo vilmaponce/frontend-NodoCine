@@ -29,18 +29,29 @@ const UserList = () => {
     setLoading(true);
     
     try {
-      // Aquí conectaríamos con el backend cuando esté listo
-      // const response = await axios.post('/api/users/create-family', { email, password });
+      // Usar el endpoint de registro para crear la cuenta familiar
+      const response = await axios.post('http://localhost:3001/api/auth/register', { 
+        email, 
+        password 
+      });
       
-      // Por ahora simulamos el éxito
-      setTimeout(() => {
-        toast.success('Cuenta familiar creada con éxito');
-        setLoading(false);
-        setEmail('');
-        setPassword('');
-      }, 1000);
+      // Si la petición es exitosa
+      toast.success('Cuenta familiar creada con éxito');
+      setLoading(false);
+      setEmail('');
+      setPassword('');
+      
+      // Actualizar la lista de usuarios mock para mostrar el nuevo usuario
+      mockUsers.push({
+        _id: response.data.user.id,
+        email: response.data.user.email,
+        isAdmin: false,
+        createdAt: new Date()
+      });
+      
     } catch (error) {
-      toast.error('Error al crear la cuenta familiar');
+      console.error('Error al crear cuenta:', error);
+      toast.error(error.response?.data?.message || 'Error al crear la cuenta familiar');
       setLoading(false);
     }
   };

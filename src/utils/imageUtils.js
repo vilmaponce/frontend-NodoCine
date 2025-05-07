@@ -1,52 +1,22 @@
-// src/utils/imageUtils.js
-
-/**
- * Obtiene la URL completa para una imagen
- * @param {string} relativePath - Ruta relativa de la imagen
- * @param {string} type - Tipo de imagen (profiles, movies)
- * @returns {string} URL completa de la imagen
- */
-export const getImageUrl = (relativePath, type = 'profiles') => {
-  // URL base del backend
-  const backendUrl = 'http://localhost:3001';
+export const normalizeImageUrl = (url) => {
+  // URL base para imágenes
+  const imagesBaseUrl = import.meta.env.VITE_IMAGES_URL || 'http://localhost:3001/images/profiles';
   
-  // Si la ruta es vacía o undefined, devolver imagen por defecto
-  if (!relativePath) {
-    return `${backendUrl}/images/${type}/default-${type === 'profiles' ? 'profile' : 'movie'}.png`;
-  }
-  
-  // Si ya es una URL completa, devolverla tal cual
-  if (relativePath.startsWith('http')) {
-    return relativePath;
-  }
+  if (!url) return `${imagesBaseUrl}/default-profile.png`;
+  if (url.startsWith('http')) return url;
   
   // Normalizar la ruta
-  let normalizedPath = relativePath;
+  let normalizedPath = url;
   
-  // Asegurarse de que comienza con /
+  // Si es una ruta relativa sin /
   if (!normalizedPath.startsWith('/')) {
-    normalizedPath = `/${normalizedPath}`;
+    return `${imagesBaseUrl}/${normalizedPath}`;
   }
   
-  // Asegurarse de que incluye /images/ en la ruta
-  if (!normalizedPath.includes('/images/')) {
-    normalizedPath = `/images/${type}${normalizedPath}`;
+  // Si ya tiene la estructura completa con /images/profiles
+  if (normalizedPath.includes('/images/profiles')) {
+    return `${import.meta.env.VITE_API_URL.split('/api')[0]}${normalizedPath}`;
   }
   
-  // Devolver URL completa
-  return `${backendUrl}${normalizedPath}`;
-};
-
-/**
- * Obtiene la URL para una imagen de perfil
- */
-export const getProfileImageUrl = (relativePath) => {
-  return getImageUrl(relativePath, 'profiles');
-};
-
-/**
- * Obtiene la URL para una imagen de película
- */
-export const getMovieImageUrl = (relativePath) => {
-  return getImageUrl(relativePath, 'movies');
+  return `${imagesBaseUrl}${normalizedPath}`;
 };

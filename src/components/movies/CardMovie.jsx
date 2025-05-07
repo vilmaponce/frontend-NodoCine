@@ -16,11 +16,14 @@ export default function CardMovie({ movie, inWatchlist = false, onRemove, onUpda
   const [imageFailed, setImageFailed] = useState(false);
   const fallbackImage = "/images/default-movie.png";
   
+  // Usar variables de entorno para las URLs
+  const baseUrl = import.meta.env.VITE_API_URL?.split('/api')[0] || 'http://localhost:3001';
+  
   const imageUrl = imageFailed 
     ? fallbackImage 
     : (movie.imageUrl?.includes('http') 
       ? movie.imageUrl 
-      : `http://localhost:3001${movie.imageUrl || ''}`);
+      : `${baseUrl}${movie.imageUrl || ''}`);
 
   // Verificar si la película está en la watchlist
   useEffect(() => {
@@ -36,11 +39,14 @@ export default function CardMovie({ movie, inWatchlist = false, onRemove, onUpda
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+      
       await axios.post(
-        `http://localhost:3001/api/profiles/${currentProfile._id}/watchlist`,
+        `${apiUrl}/profiles/${currentProfile._id}/watchlist`,
         { movieId: movie._id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
       setIsInWatchlist(true);
       toast.success('Película añadida a la lista');
     } catch (err) {
@@ -60,10 +66,13 @@ export default function CardMovie({ movie, inWatchlist = false, onRemove, onUpda
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+      
       await axios.delete(
-        `http://localhost:3001/api/profiles/${currentProfile._id}/watchlist/${movie._id}`,
+        `${apiUrl}/profiles/${currentProfile._id}/watchlist/${movie._id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
       setIsInWatchlist(false);
       onRemove && onRemove(movie._id);
       toast.success('Película eliminada de la lista');
@@ -74,7 +83,7 @@ export default function CardMovie({ movie, inWatchlist = false, onRemove, onUpda
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="group relative aspect-[2/3] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:z-10 hover:scale-105">
       <img

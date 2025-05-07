@@ -33,15 +33,15 @@ const MovieCatalog = () => {
     try {
       setLoading(true);
       const response = await api.get('/movies');
-      
+
       // Filtrar películas según el perfil (si es niño, mostrar solo animación)
       let availableMovies = response.data;
       if (currentProfile?.isChild) {
-        availableMovies = availableMovies.filter(movie => 
+        availableMovies = availableMovies.filter(movie =>
           movie.genre === 'animation' || movie.rating <= 7
         );
       }
-      
+
       setMovies(availableMovies);
       setFilteredMovies(availableMovies);
       setLoading(false);
@@ -55,39 +55,27 @@ const MovieCatalog = () => {
   // Filtrar películas según búsqueda y género
   useEffect(() => {
     let result = movies;
-    
+
     // Filtrar por término de búsqueda
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      result = result.filter(movie => 
-        movie.title.toLowerCase().includes(term) || 
+      result = result.filter(movie =>
+        movie.title.toLowerCase().includes(term) ||
         (movie.director && movie.director.toLowerCase().includes(term))
       );
     }
-    
-    // Filtrar por género
+
+    // Filtrar por género (comparación menos estricta)
     if (genreFilter) {
-      result = result.filter(movie => movie.genre === genreFilter);
+      result = result.filter(movie =>
+        movie.genre && movie.genre.toLowerCase() === genreFilter.toLowerCase()
+      );
     }
-    
+
     setFilteredMovies(result);
   }, [searchTerm, genreFilter, movies]);
 
-  // Agregar película a la watchlist
-  const addToWatchlist = async (movieId) => {
-    try {
-      if (!currentProfile) {
-        setError('Debes seleccionar un perfil primero');
-        return;
-      }
-      
-      await api.post(`/profiles/${currentProfile._id}/watchlist`, { movieId });
-      alert('Película añadida a tu lista');
-    } catch (err) {
-      console.error('Error al añadir a watchlist:', err);
-      setError('No se pudo añadir la película a tu lista');
-    }
-  };
+
 
   if (loading) {
     return <div className="text-center py-10">Cargando películas...</div>;
@@ -96,13 +84,13 @@ const MovieCatalog = () => {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold text-white mb-6">Películas</h1>
-      
+
       {error && (
         <div className="bg-red-500 text-white p-3 rounded-md mb-4">
           {error}
         </div>
       )}
-      
+
       {/* Filtros */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="md:w-1/2">
@@ -128,7 +116,7 @@ const MovieCatalog = () => {
           </select>
         </div>
       </div>
-      
+
       {/* Catálogo de películas */}
       {filteredMovies.length === 0 ? (
         <div className="bg-gray-800 p-6 rounded-lg text-center">
@@ -152,28 +140,9 @@ const MovieCatalog = () => {
                   </h3>
                 </Link>
                 <p className="text-sm text-gray-400 mb-1">{movie.year} • {movie.duration}</p>
-                <div className="flex justify-between items-center mt-2">
+
+                <div className="mt-2">
                   <span className="text-sm text-yellow-400">{movie.rating}/10</span>
-                  <button
-                    onClick={() => addToWatchlist(movie._id)}
-                    className="text-sm text-gray-300 hover:text-red-500"
-                    title="Añadir a mi lista"
-                  >
-                    <svg 
-                      className="w-5 h-5" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24" 
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" 
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </button>
                 </div>
               </div>
             </div>

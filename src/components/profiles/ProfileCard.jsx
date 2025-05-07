@@ -21,7 +21,8 @@ const ProfileCard = ({ profile, onSelect }) => {
         // No es una URL absoluta, tratar como ruta relativa
         // Verificar si ya incluye http://localhost:3001
         if (!profile.imageUrl.includes('http://localhost:3001')) {
-          setImageSource(`http://localhost:3001${profile.imageUrl.startsWith('/') ? profile.imageUrl : '/' + profile.imageUrl}`);
+          const baseUrl = import.meta.env.VITE_API_URL?.split('/api')[0] || 'http://localhost:3001';
+          setImageSource(`${baseUrl}${profile.imageUrl.startsWith('/') ? profile.imageUrl : '/' + profile.imageUrl}`);
         } else {
           setImageSource(profile.imageUrl);
         }

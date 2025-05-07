@@ -1,0 +1,57 @@
+/* src/styles/theme.css */
+:root {
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #e9ecef;
+    --text-primary: #212529;
+    --text-secondary: #495057;
+    --card-bg: #ffffff;
+    --card-border: #dee2e6;
+    --accent-color: #e50914;
+    --accent-hover: #b81d24;
+  }
+  
+  .dark-mode {
+    --bg-primary: #121212;
+    --bg-secondary: #1e1e1e;
+    --text-primary: #e9ecef;
+    --text-secondary: #adb5bd;
+    --card-bg: #2a2a2a;
+    --card-border: #495057;
+    --accent-color: #e50914;
+    --accent-hover: #b81d24;
+  }
+  
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  .bg-app {
+    background-color: var(--bg-primary);
+  }
+  
+  .text-app {
+    color: var(--text-primary);
+  }
+  
+  /* Sobrescribir clases Tailwind para usar variables CSS */
+  .bg-gray-900 {
+    background-color: var(--bg-secondary) !important;
+  }
+  
+  .bg-gray-800 {
+    background-color: var(--card-bg) !important;
+  }
+  
+  .text-white {
+    color: var(--text-primary) !important;
+  }
+  
+  .text-gray-400 {
+    color: var(--text-secondary) !important;
+  }
+  
+  .border-gray-700 {
+    border-color: var(--card-border) !important;
+  }

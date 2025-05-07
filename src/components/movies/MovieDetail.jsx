@@ -1,8 +1,9 @@
-// src/components/movies/MovieDetail.jsx---este siiiiii
+// src/components/movies/MovieDetail.jsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProfile } from '../../context/ProfileContext';
 import api from '../../utils/api';
+import axios from 'axios';
 
 const MovieDetail = () => {
   const { id } = useParams();
@@ -14,6 +15,9 @@ const MovieDetail = () => {
   const [error, setError] = useState('');
   const [inWatchlist, setInWatchlist] = useState(false);
 
+  const [trailer, setTrailer] = useState(null);
+  const [additionalDetails, setAdditionalDetails] = useState(null);
+
   useEffect(() => {
     fetchMovie();
     
@@ -23,11 +27,42 @@ const MovieDetail = () => {
     }
   }, [id, currentProfile]);
 
+  const fetchOMDBData = async (title, year) => {
+    try {
+      // Obtener la clave API desde variables de entorno expuestas por Vite
+      const apiKey = import.meta.env.VITE_OMDB_API_KEY;
+  
+      const response = await axios.get(
+        `https://www.omdbapi.com/?t=${encodeURIComponent(title)}&y=${year}&apikey=${apiKey}`
+      );
+  
+      if (response.data.Response === "True") {
+        setAdditionalDetails(response.data);
+        searchYouTubeTrailer(title, year);
+      }
+    } catch (err) {
+      console.error('Error al obtener datos adicionales:', err);
+    }
+  };
+  
+  const searchYouTubeTrailer = (title, year) => {
+    // Generar enlace de búsqueda a YouTube (solución rápida)
+    const searchQuery = `${title} ${year} trailer oficial`;
+    const trailerUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
+    setTrailer(trailerUrl);
+  };
+  
   const fetchMovie = async () => {
     try {
       setLoading(true);
       const response = await api.get(`/movies/${id}`);
       setMovie(response.data);
+      
+      // Añadir esta línea para buscar datos adicionales
+      if (response.data && response.data.title) {
+        fetchOMDBData(response.data.title, response.data.year);
+      }
+      
       setLoading(false);
     } catch (err) {
       console.error('Error al cargar película:', err);
@@ -220,6 +255,57 @@ const MovieDetail = () => {
             <div className="mb-6">
               <h3 className="text-white font-medium mb-2">Sinopsis</h3>
               <p className="text-gray-300 leading-relaxed">{movie.plot}</p>
+            </div>
+          )}
+          
+          {/* Trailer y detalles adicionales */}
+          {(trailer || additionalDetails) && (
+            <div className="mt-6 border-t border-gray-700 pt-6">
+              {trailer && (
+                <div className="mb-6">
+                  <h3 className="text-white font-medium mb-3">Trailer</h3>
+                  <a 
+                    href={trailer} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-block bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors"
+                  >
+                    Ver trailer en YouTube
+                  </a>
+                </div>
+              )}
+              
+              {additionalDetails && (
+                <div>
+                  <h3 className="text-white font-medium mb-3">Detalles adicionales</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {additionalDetails.Actors && (
+                      <div>
+                        <p className="text-gray-400 text-sm">Reparto:</p>
+                        <p className="text-white">{additionalDetails.Actors}</p>
+                      </div>
+                    )}
+                    {additionalDetails.Runtime && (
+                      <div>
+                        <p className="text-gray-400 text-sm">Duración:</p>
+                        <p className="text-white">{additionalDetails.Runtime}</p>
+                      </div>
+                    )}
+                    {additionalDetails.Awards && (
+                      <div>
+                        <p className="text-gray-400 text-sm">Premios:</p>
+                        <p className="text-white">{additionalDetails.Awards}</p>
+                      </div>
+                    )}
+                    {additionalDetails.BoxOffice && (
+                      <div>
+                        <p className="text-gray-400 text-sm">Taquilla:</p>
+                        <p className="text-white">{additionalDetails.BoxOffice}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

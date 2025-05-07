@@ -4,6 +4,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useProfile } from '../../context/ProfileContext';
 import { toast } from 'react-toastify';
+import { useTheme } from '../../context/ThemeContext';
+
 
 export default function Navbar() {
   const { isAuthenticated, isAdmin, user, logout, makeAdmin } = useAuth();
@@ -11,6 +13,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { darkMode, toggleTheme } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -90,6 +93,13 @@ export default function Navbar() {
             ) : (
               // Enlaces para usuarios comunes
               <>
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600"
+                  aria-label="Cambiar tema"
+                >
+                  {darkMode ? '☀️' : '🌙'}
+                </button>
                 <Link to="/home" className="text-gray-300 hover:text-white">
                   Inicio
                 </Link>
@@ -97,6 +107,7 @@ export default function Navbar() {
                   Películas
                 </Link>
                 {user?.email === 'admin@admin.com' && !isAdmin && (
+
                   <button
                     onClick={() => {
                       if (user && user.email) {
@@ -116,6 +127,7 @@ export default function Navbar() {
                   >
                     Activar modo administrador
                   </button>
+
                 )}
               </>
             )}

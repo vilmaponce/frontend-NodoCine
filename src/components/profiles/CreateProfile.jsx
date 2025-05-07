@@ -5,15 +5,23 @@ import { useProfile } from '../../context/ProfileContext';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 
+
+const getRandomAvatar = (name) => {
+  // Usa DiceBear API para generar avatares basados en el nombre
+  return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
+};
+
 export default function CreateProfile() {
   const [name, setName] = useState('');
   const [isChild, setIsChild] = useState(false);
   const [image, setImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   
   const { user } = useAuth();
   const { createNewProfile } = useProfile();
   const navigate = useNavigate();
+
   
   // Obtener ID de usuario de localStorage como respaldo
   const getUserIdFromStorage = () => {
@@ -30,11 +38,13 @@ export default function CreateProfile() {
     }
     return null;
   };
+
+  
   
  // En handleSubmit de ProfileCreate.jsx
-const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
   e.preventDefault();
-  setLoading(true);
+  setIsSubmitting(true);
   
   try {
     const formData = new FormData();
@@ -46,14 +56,17 @@ const handleSubmit = async (e) => {
       formData.append('userId', user.id);
     }
     
-    // Añadir la imagen si existe
-    if (imageFile) {
-      formData.append('image', imageFile);
+    // Si no hay imagen seleccionada, usar avatar aleatorio
+    if (image) {
+      formData.append('image', image);
       console.log('Imagen agregada al FormData:', {
-        nombre: imageFile.name,
-        tipo: imageFile.type,
-        tamaño: imageFile.size
+        nombre: image.name,
+        tipo: image.type,
+        tamaño: image.size
       });
+    } else {
+      // Genera una URL para el avatar y la envía como imageUrl
+      formData.append('imageUrl', getRandomAvatar(name));
     }
     
     // Usar la función del contexto o axios directamente
@@ -88,7 +101,7 @@ const handleSubmit = async (e) => {
     
     toast.error('Error al crear perfil');
   } finally {
-    setLoading(false);
+    setIsSubmitting(false);
   }
 };
   

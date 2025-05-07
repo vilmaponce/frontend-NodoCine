@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
-import { MovieFormSimple } from '../../components/Admin/MovieFormSimple';
+import MovieFormSimple from '../../components/MovieFormSimple';
 
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
@@ -99,8 +99,6 @@ const ProfileManager = () => {
       throw err;
     }
   };
-
-
 
   const handleDeleteProfile = async (profileId) => {
     if (!window.confirm('¿Estás seguro de eliminar este perfil?')) return;

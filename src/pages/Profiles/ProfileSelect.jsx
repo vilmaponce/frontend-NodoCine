@@ -3,14 +3,13 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useProfile } from '../../context/ProfileContext';
-import { getProfileImageUrl } from '../../utils/imageUtils';
+import { normalizeImageUrl } from '../../utils/imageUtils';
 import api from '../../utils/api';
 
 const ProfileSelect = () => {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
   const { user } = useAuth();
   const { selectProfile } = useProfile();
   const navigate = useNavigate();
