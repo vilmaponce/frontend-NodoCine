@@ -13,7 +13,7 @@ export default function Footer() {
           {/* LOGO Y NOMBRE */}
           <div className="flex items-center space-x-3">
             <img
-              src={`${import.meta.env.VITE_API_URL}/public/images/nodoflix.png`}
+              src={`${import.meta.env.VITE_API_URL}/images/nodoflix.png`}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = '/images/nodoflix.png';

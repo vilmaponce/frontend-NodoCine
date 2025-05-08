@@ -69,7 +69,7 @@ export default function Navbar() {
         <div className="flex items-center">
           <Link to={isAdmin ? '/admin' : '/'} className="text-red-600 font-bold text-2xl">
             <img
-              src={`${import.meta.env.VITE_API_URL}/public/images/nodoflix.png`}
+              src={`${import.meta.env.VITE_API_URL}/images/nodoflix.png`}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = '/images/nodoflix.png';
