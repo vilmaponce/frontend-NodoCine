@@ -10,6 +10,7 @@ const api = axios.create({
 // Interceptor de solicitud para añadir el token
 api.interceptors.request.use(
   config => {
+    console.log('Enviando solicitud a URL completa:', config.baseURL + config.url);
     const token = localStorage.getItem('token');
     if (token) {
       console.log('Enviando solicitud con token:', token.substring(0, 15) + '...');
