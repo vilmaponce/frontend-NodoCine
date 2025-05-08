@@ -9,7 +9,7 @@ const UserList = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-
+  const [userToDelete, setUserToDelete] = useState(null);
   // Datos de usuario "hard-coded" para una demostración
   const mockUsers = [
     {
@@ -54,6 +54,30 @@ const UserList = () => {
     } catch (error) {
       console.error('Error al crear cuenta:', error);
       toast.error(error.response?.data?.message || 'Error al crear la cuenta familiar');
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      // Llamada a la API para eliminar el usuario
+      await axios.delete(`http://localhost:3001/api/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Actualizar la lista de usuarios eliminando el usuario borrado
+      const updatedUsers = mockUsers.filter(user => user._id !== userId);
+      setMockUsers(updatedUsers); // Asumiendo que usas setMockUsers para actualizar el estado
+      
+      toast.success('Usuario eliminado con éxito');
+      setUserToDelete(null);
+    } catch (error) {
+      console.error('Error al eliminar usuario:', error);
+      toast.error(error.response?.data?.message || 'Error al eliminar el usuario');
+    } finally {
       setLoading(false);
     }
   };
