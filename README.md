@@ -4,6 +4,20 @@ Este proyecto es una plataforma de streaming inspirada en Netflix, que permite a
 
 ![NodoCine Logo](public/images/nodoflix.png)
 
+## 🌐 Despliegue
+
+- **Frontend**: [https://frontend-nodo-cine-odwj.vercel.app/](https://frontend-nodo-cine-odwj.vercel.app/)
+- **Backend API**: [https://nodocine-backend.onrender.com/](https://nodocine-backend.onrender.com/)
+
+## 🧪 Credenciales de prueba
+
+- **Administrador**:
+  - Email: admin@admin.com
+  - Contraseña: admin123
+- **Familia**
+   -Email: familia@ejemplo.com
+   -Contraseña: familia123
+
 ## 🚀 Características
 
 - **Gestión de cuentas y perfiles**
