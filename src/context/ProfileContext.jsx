@@ -204,7 +204,6 @@ export const ProfileProvider = ({ children }) => {
     error,
     fetchProfiles,
     selectProfile,
-    updateProfile,
     restoreCurrentProfile,
     setCurrentProfile,
     createProfile,

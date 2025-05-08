@@ -23,7 +23,7 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 
 // Páginas de contenido
-import MovieList from './components/movies/movieList';
+import MovieList from './components/movies/MovieList';
 import MovieDetail from './components/movies/MovieDetail';
 import ProfileForm from './components/profiles/ProfileForm';
 import Unauthorized from './pages/Unauthorized';
