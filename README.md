@@ -141,7 +141,7 @@ El frontend se comunica con un backend Node.js + Express + MongoDB. Asegúrate d
 
 ## 👥 Autor
 
-- **Tu Nombre** - [GitHub](https://github.com/vilmaponce)
+- **VILMA PONCE** - [GitHub](https://github.com/vilmaponce)
 
 ## 📄 Licencia
 
