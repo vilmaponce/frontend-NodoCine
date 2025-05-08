@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
+import { useTheme } from '../../context/ThemeContext';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -12,6 +13,7 @@ const AdminDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { darkMode, toggleTheme } = useTheme();
 
   useEffect(() => {
     fetchStats();
@@ -20,32 +22,45 @@ const AdminDashboard = () => {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      
+
       // Obtener estadísticas básicas, evitando la ruta que da error
       const moviesResponse = await api.get('/movies');
-      
+
       // En lugar de buscar usuarios y perfiles, podemos usar valores por defecto
       setStats({
         totalMovies: moviesResponse.data.length || 0,
         totalUsers: 0, // Valor por defecto
         totalProfiles: 0 // Valor por defecto
       });
-      
+
       setLoading(false);
     } catch (err) {
       console.error('Error al cargar estadísticas:', err);
       setLoading(false);
     }
   };
-  
+
   if (loading) {
     return <div className="text-center py-10">Cargando...</div>;
   }
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold text-white mb-6">Panel de Administración</h1>
-      
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-white">Panel de Administración</h1>
+
+        {/* Botón de tema con texto que cambia de color */}
+        <button
+          onClick={toggleTheme}
+          className={`p-2 rounded-full ${darkMode ? 'bg-gray-500' : 'bg-gray-600'} hover:bg-gray-600 flex items-center`}
+          aria-label="Cambiar tema"
+        >
+          <span className={`mr-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            {darkMode ? 'Modo Claro' : 'Modo Oscuro'}
+          </span>
+          {darkMode ? '☀️' : '🌙'}
+        </button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Tarjeta de películas */}
         <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
@@ -60,7 +75,7 @@ const AdminDashboard = () => {
             Administrar películas
           </Link>
         </div>
-        
+
         {/* Tarjeta de usuarios */}
         <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
           <div className="flex justify-between items-center">
@@ -74,7 +89,7 @@ const AdminDashboard = () => {
             Administrar usuarios
           </Link>
         </div>
-        
+
         {/* Tarjeta de perfiles */}
         <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
           <div className="flex justify-between items-center">
@@ -89,7 +104,7 @@ const AdminDashboard = () => {
           </Link>
         </div>
       </div>
-      
+
       {/* Accesos rápidos */}
       <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
         <h2 className="text-xl font-semibold text-white mb-4">Acciones rápidas</h2>
@@ -101,7 +116,7 @@ const AdminDashboard = () => {
             <h3 className="text-white font-medium">Añadir película</h3>
             <p className="text-gray-400 text-sm mt-1">Crear una nueva película en el catálogo</p>
           </Link>
-          
+
           <Link
             to="/"
             className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition-colors"
@@ -109,7 +124,7 @@ const AdminDashboard = () => {
             <h3 className="text-white font-medium">Ver como usuario</h3>
             <p className="text-gray-400 text-sm mt-1">Ver la plataforma como la verían los usuarios</p>
           </Link>
-          
+
           <Link
             to="/admin/reports"
             className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition-colors"
@@ -119,7 +134,7 @@ const AdminDashboard = () => {
           </Link>
         </div>
       </div>
-      
+
       {/* Información del administrador */}
       <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
         <h2 className="text-xl font-semibold text-white mb-4">Información de cuenta</h2>

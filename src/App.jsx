@@ -10,8 +10,13 @@ import AdminRoute from './components/routing/AdminRoute';
 
 // Importar componentes
 import Navbar from './components/Layouts/Navbar'; // Solo usar este Navbar
+import Footer from './components/ui/Footer';
 import Home from './pages/Browse/Home';
 import './styles/theme.css';
+
+// Importar estilos de react-toastify
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Páginas de autenticación
 import Login from './components/auth/Login';
@@ -35,7 +40,7 @@ import Reports from './components/Admin/Reports';
 // Páginas de administración
 import AdminDashboard from './components/Admin/AdminDashboard';// Usar solo este
 import UserList from './components/Admin/UserList';
-import ProfileManager from './pages/Admin/profileManager'; // si es así
+import ProfileManager from './pages/Admin/ProfileManager'; // si es así
 
 
 
@@ -80,6 +85,20 @@ function App() {
                   </Route>
                 </Routes>
               </main>
+              {/* Agregar esto */}
+              <ToastContainer 
+                position="bottom-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="dark"
+              />
+              <Footer />
             </div>
           </ProfileProvider>
         </Router>

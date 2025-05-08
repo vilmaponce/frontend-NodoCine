@@ -56,6 +56,11 @@ export default function Navbar() {
 
   const isAdminPage = location.pathname.startsWith('/admin');
 
+  // Función para determinar si mostrar el botón de activar modo admin
+  const shouldShowAdminButton = () => {
+    // Solo mostrar para el email admin@admin.com y cuando NO es admin actualmente
+    return user?.email === 'admin@admin.com' && !isAdmin;
+  };
 
   return (
     <nav className={`${isAdminPage ? 'bg-gray-900' : 'bg-black'} py-4 shadow-md`}>
@@ -63,7 +68,16 @@ export default function Navbar() {
         {/* Logo */}
         <div className="flex items-center">
           <Link to={isAdmin ? '/admin' : '/'} className="text-red-600 font-bold text-2xl">
-            NodoCine
+            <img
+              src={`${import.meta.env.VITE_API_URL}/public/images/nodoflix.png`}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = '/images/nodoflix.png';
+              }}
+              alt="Logo Nodo Flix"
+              className="h-16 object-contain mr-2"
+            />
+
           </Link>
         </div>
 
@@ -106,28 +120,39 @@ export default function Navbar() {
                 <Link to="/movies" className="text-gray-300 hover:text-white">
                   Películas
                 </Link>
-                {user?.email === 'admin@admin.com' && !isAdmin && (
-
+                {/* Botón de Mi Lista (Watchlist) */}
+                <Link to="/watchlist" className="text-gray-300 hover:text-white flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-1"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Mi Lista
+                </Link>
+                {/* Botón de activar modo admin solo para admin@admin.com cuando no es admin */}
+                {shouldShowAdminButton() && (
                   <button
                     onClick={() => {
-                      if (user && user.email) {
-                        makeAdmin(user.email)
-                          .then(() => {
-                            alert('¡Ahora eres administrador!');
-                            window.location.reload(); // Recargar para actualizar permisos
-                          })
-                          .catch(err => {
-                            alert('Error: ' + err.message);
-                          });
-                      } else {
-                        alert('Debes iniciar sesión primero');
-                      }
+                      makeAdmin(user.email)
+                        .then(() => {
+                          toast.success('¡Ahora eres administrador!');
+                          window.location.reload(); // Recargar para actualizar permisos
+                        })
+                        .catch(err => {
+                          toast.error('Error: ' + err.message);
+                        });
                     }}
-                    className="..."
+                    className="text-gray-300 hover:text-white bg-red-800 px-3 py-1 rounded"
                   >
                     Activar modo administrador
                   </button>
-
                 )}
               </>
             )}
@@ -183,14 +208,23 @@ export default function Navbar() {
                       Panel Admin
                     </Link>
                   ) : (
-                    // Opciones para usuario común
-                    <Link
-                      to="/select-profile"
-                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      Cambiar Perfil
-                    </Link>
+                    <>
+                      {/* Opciones para usuario común */}
+                      <Link
+                        to="/select-profile"
+                        className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Cambiar Perfil
+                      </Link>
+                      <Link
+                        to="/watchlist"
+                        className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Mi Lista
+                      </Link>
+                    </>
                   )}
 
                   <button
@@ -208,12 +242,10 @@ export default function Navbar() {
           ) : (
             // Enlaces para visitantes
             <div className="flex space-x-4">
-              <Link to="/login" className="text-gray-300 hover:text-white">
+              <Link to="/login" className="bg-green-600 hover:bg-red-700 text-white px-4 py-1 rounded">
                 Iniciar Sesión
               </Link>
-              <Link to="/register" className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded">
-                Registrarse
-              </Link>
+              
             </div>
           )}
         </div>

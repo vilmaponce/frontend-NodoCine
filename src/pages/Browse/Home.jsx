@@ -32,24 +32,32 @@ const Home = () => {
       // Cargar watchlist del perfil actual
       const watchlistResponse = await api.get(`/profiles/${currentProfile._id}/watchlist`);
       
-      // Filtrar según perfil (si es niño, mostrar solo animación)
-      let filtered = featuredResponse.data;
-      if (currentProfile.isChild) {
-        filtered = filtered.filter(movie => 
-          movie.genre === 'animation' || movie.rating <= 7
-        );
-      }
+       // Filtrar según perfil (si es niño, mostrar solo animación y contenido familiar)
+    let filteredFeatured = featuredResponse.data;
+    let filteredRecent = recentResponse.data;
+    let filteredWatchlist = watchlistResponse.data;
+    
+    if (currentProfile?.isChild) {
+      const isChildFriendly = movie => 
+        movie.genre === 'animation' || 
+        movie.genre === 'family' || 
+        movie.rating <= 7;
       
-      setFeaturedMovies(filtered);
-      setRecentMovies(recentResponse.data);
-      setWatchlist(watchlistResponse.data);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error al cargar datos:', err);
-      setError('No se pudieron cargar los datos');
-      setLoading(false);
+      filteredFeatured = filteredFeatured.filter(isChildFriendly);
+      filteredRecent = filteredRecent.filter(isChildFriendly);
+      filteredWatchlist = filteredWatchlist.filter(isChildFriendly);
     }
-  };
+    
+    setFeaturedMovies(filteredFeatured);
+    setRecentMovies(filteredRecent);
+    setWatchlist(filteredWatchlist);
+    setLoading(false);
+  } catch (err) {
+    console.error('Error al cargar datos:', err);
+    setError('No se pudieron cargar los datos');
+    setLoading(false);
+  }
+};
 
   // Componente de carrusel horizontal para películas
   const MovieRow = ({ title, movies, moreLink }) => {

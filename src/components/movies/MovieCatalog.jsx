@@ -35,10 +35,13 @@ const MovieCatalog = () => {
       const response = await api.get('/movies');
 
       // Filtrar películas según el perfil (si es niño, mostrar solo animación)
+      // Filtrar películas según el perfil (si es niño, mostrar solo animación y contenido familiar)
       let availableMovies = response.data;
       if (currentProfile?.isChild) {
         availableMovies = availableMovies.filter(movie =>
-          movie.genre === 'animation' || movie.rating <= 7
+          movie.genre === 'animation' ||
+          movie.genre === 'family' ||  // Agrego género "family" como apto
+          movie.rating <= 7
         );
       }
 

@@ -130,6 +130,12 @@ const MovieList = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <Link
+                        to={`/movies/${movie._id}`}
+                        className="text-blue-400 hover:text-blue-300"
+                      >
+                        Ver
+                      </Link>
+                      <Link
                         to={`/admin/movies/edit/${movie._id}`}
                         className="text-indigo-400 hover:text-indigo-300"
                       >

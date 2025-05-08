@@ -9,27 +9,27 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
-  
+
   const handleChange = (e) => {
     setCredentials({
       ...credentials,
       [e.target.name]: e.target.value
     });
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    
+
     try {
       console.log('Intentando iniciar sesión con:', credentials.email);
       const data = await login(credentials);
       console.log('Inicio de sesión exitoso:', data.user);
-      
+
       // Redireccionar según el rol
       if (data.user.isAdmin) {
         navigate('/admin');
@@ -50,13 +50,13 @@ const Login = () => {
         <h2 className="text-3xl font-bold text-white text-center mb-6">
           Iniciar Sesión
         </h2>
-        
+
         {error && (
           <div className="bg-red-500 text-white p-3 rounded mb-4">
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-gray-300 mb-1">
@@ -73,7 +73,7 @@ const Login = () => {
               placeholder="tu@email.com"
             />
           </div>
-          
+
           <div>
             <label htmlFor="password" className="block text-gray-300 mb-1">
               Contraseña
@@ -89,22 +89,21 @@ const Login = () => {
               placeholder="********"
             />
           </div>
-          
+
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-3 rounded-lg font-semibold text-white transition-colors ${
-              loading ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
-            }`}
+            className={`w-full py-3 rounded-lg font-semibold text-white transition-colors ${loading ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+              }`}
           >
             {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
           </button>
-          
+
           <div className="text-center text-gray-400 mt-4">
-            ¿No tienes una cuenta?{' '}
-            <Link to="/register" className="text-red-500 hover:text-red-400">
-              Regístrate aquí
-            </Link>
+            ¿Necesitas acceso? Contacta al administrador en{' '}
+            <a href="mailto:admin@ejemplo.com" className="text-red-500 hover:text-red-400">
+              vilmuponce@gmail.com
+            </a>
           </div>
         </form>
       </div>

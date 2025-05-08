@@ -1,7 +1,8 @@
-// Modificación de MovieFormSimple.jsx
+// Modificación de MovieFormSimple.jsx  //components/MovieFormSimple.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../utils/api';
+import { toast } from 'react-toastify';
 
 const MovieFormSimple = () => {
   const { id } = useParams(); // Para obtener el ID de la URL si estamos editando
@@ -75,27 +76,27 @@ const MovieFormSimple = () => {
         // Actualizar película existente
         await api.put(`/movies/${id}`, movieData);
         console.log('Película actualizada');
-        // Opcional: redirigir a la vista detallada
-        navigate(`/movies/${id}`);
+        toast.success('¡Película actualizada con éxito!');
+        // CAMBIO AQUÍ: Siempre redirigir al listado de películas del admin
+        navigate('/admin/movies');
       } else {
         // Crear nueva película
         const response = await api.post('/movies', movieData);
         console.log('Película creada');
-        // Opcional: redirigir a la vista detallada
-        if (response.data && response.data._id) {
-          navigate(`/movies/${response.data._id}`);
-        } else {
-          navigate('/admin/movies');
-        }
+        toast.success('¡Película creada con éxito!');
+        // CAMBIO AQUÍ: Siempre redirigir al listado de películas del admin
+        navigate('/admin/movies');
       }
     } catch (err) {
       console.error('Error al guardar película:', err);
       setError('Error al guardar la película: ' + err.message);
+      // Agregar toast de error
+      toast.error('Error al guardar la película');
     } finally {
       setLoading(false);
     }
   };
-  
+
   // Cancelar y volver
   const handleCancel = () => {
     navigate('/admin/movies');
@@ -107,6 +108,15 @@ const MovieFormSimple = () => {
 
   return (
     <div className="max-w-xl mx-auto bg-gray-800 p-6 rounded-lg">
+      <button
+        onClick={() => navigate(-1)}
+        className="mr-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white"
+        title="Regresar"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+        </svg>
+      </button>
       <h2 className="text-2xl font-bold text-white mb-6">
         {id ? 'Editar Película' : 'Añadir Película'}
       </h2>
@@ -172,6 +182,7 @@ const MovieFormSimple = () => {
               <option value="thriller">Suspenso</option>
               <option value="adventure">Aventura</option>
               <option value="animation">Animación</option>
+              <option value="family">Familia</option>
               <option value="drama">Drama</option>
               <option value="horror">Terror</option>
               <option value="scifi">Ciencia Ficción</option>

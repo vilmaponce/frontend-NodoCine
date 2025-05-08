@@ -1,13 +1,15 @@
 // src/components/admin/UserList.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 const UserList = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
+  const navigate = useNavigate();
+
   // Datos de usuario "hard-coded" para una demostración
   const mockUsers = [
     {
@@ -27,20 +29,20 @@ const UserList = () => {
   const handleCreateFamilyAccount = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       // Usar el endpoint de registro para crear la cuenta familiar
-      const response = await axios.post('http://localhost:3001/api/auth/register', { 
-        email, 
-        password 
+      const response = await axios.post('http://localhost:3001/api/auth/register', {
+        email,
+        password
       });
-      
+
       // Si la petición es exitosa
       toast.success('Cuenta familiar creada con éxito');
       setLoading(false);
       setEmail('');
       setPassword('');
-      
+
       // Actualizar la lista de usuarios mock para mostrar el nuevo usuario
       mockUsers.push({
         _id: response.data.user.id,
@@ -48,7 +50,7 @@ const UserList = () => {
         isAdmin: false,
         createdAt: new Date()
       });
-      
+
     } catch (error) {
       console.error('Error al crear cuenta:', error);
       toast.error(error.response?.data?.message || 'Error al crear la cuenta familiar');
@@ -58,8 +60,17 @@ const UserList = () => {
 
   return (
     <div className="container mx-auto p-4">
+      <button
+        onClick={() => navigate(-1)}
+        className="mr-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white"
+        title="Regresar"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+        </svg>
+      </button>
       <h1 className="text-2xl font-bold text-white mb-6">Administrar Usuarios</h1>
-      
+
       <div className="overflow-x-auto">
         <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
           <thead className="bg-gray-900">
@@ -92,7 +103,7 @@ const UserList = () => {
           </tbody>
         </table>
       </div>
-      
+
       <div className="mt-6 p-4 bg-gray-800 rounded-lg">
         <h2 className="text-xl font-bold text-white mb-4">Crear cuenta familiar</h2>
         <p className="text-gray-300 mb-4">
@@ -102,7 +113,7 @@ const UserList = () => {
         <form onSubmit={handleCreateFamilyAccount}>
           <div className="mb-4">
             <label className="block text-gray-300 mb-2" htmlFor="email">Email</label>
-            <input 
+            <input
               type="email"
               id="email"
               className="w-full bg-gray-700 text-white px-4 py-2 rounded"
@@ -111,10 +122,10 @@ const UserList = () => {
               required
             />
           </div>
-          
+
           <div className="mb-4">
             <label className="block text-gray-300 mb-2" htmlFor="password">Contraseña</label>
-            <input 
+            <input
               type="password"
               id="password"
               className="w-full bg-gray-700 text-white px-4 py-2 rounded"
@@ -123,9 +134,9 @@ const UserList = () => {
               required
             />
           </div>
-          
-          <button 
-            type="submit" 
+
+          <button
+            type="submit"
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-red-800"
             disabled={loading}
           >
