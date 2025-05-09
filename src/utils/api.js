@@ -25,7 +25,7 @@ api.interceptors.request.use(
   }
 );
 
-// Interceptor de respuesta para manejar errores
+// Interceptor para añadir el token en cada petición
 api.interceptors.response.use(
   response => response,
   error => {
